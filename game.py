@@ -3,7 +3,7 @@
 import pygame
 
 # from the math module (built into python), get the fabs method
-from math import fabs
+from math import fabs, hypot
 
 # 2. Init pygame
 # in order to use pygame, we have to run the init method
@@ -32,7 +32,7 @@ hero = {
 goblin = {
 	"x": 200,
 	"y": 200,
-	"speed": 15
+	"speed": 2
 }
 
 keys = {
@@ -49,9 +49,12 @@ keys_down = {
 	"right": False
 }
 
+game_over_text = ""
+
 # 4. Create a game loop (while)
 # Create a boolean for whether the game should be going or not
 game_on = True
+hero_alive = True
 while game_on:
 	# we are inside the main game loop.
 	# it will keep running, as long as our bool is true
@@ -88,23 +91,46 @@ while game_on:
 			if event.key == keys['left']:
 				keys_down['left'] = False
 
+	if hero_alive:
+		# MOve the hero
+		if keys_down['up']:
+			hero['y'] -= hero['speed']
+		elif keys_down['down']:
+			hero['y'] += hero['speed']
+		if keys_down['left']:
+			hero['x'] -= hero['speed']
+		elif keys_down['right']:
+			hero['x'] += hero['speed']
 
-	if keys_down['up']:
-		hero['y'] -= hero['speed']
-	elif keys_down['down']:
-		hero['y'] += hero['speed']
-	if keys_down['left']:
-		hero['x'] -= hero['speed']
-	elif keys_down['right']:
-		hero['x'] += hero['speed']
+		# Move the bad guy
+		dx = goblin['x'] - hero['x']
+		dy = goblin['y'] - hero['y']
+		dist = hypot(dx,dy)
+		# print dist
+		dx = dx / dist
+		dy = dy / dist
+		# print dx, dy
+		goblin['x'] -= dx * goblin['speed']
+		goblin['y'] -= dy * goblin['speed']
 
-	# COLLISION DETECTION!!!
-	distance_between = fabs(hero['x'] - goblin['x']) + fabs(hero['y'] - goblin['y'])
-	if distance_between < 32:
-		# the hero and goblin are touching!
-		print "collision!"
+
+
+		# COLLISION DETECTION!!!
+		distance_between = fabs(hero['x'] - goblin['x']) + fabs(hero['y'] - goblin['y'])
+		if distance_between < 32:
+			# the hero and goblin are touching!
+			# print "collision!"
+			goblin['x'] = 200
+			goblin['y'] = 200
+			goblin['speed'] += 1
+			hero_alive = False
+		else:
+			print "not touching"
+	# hero_alive = false
 	else:
-		print "not touching"
+		game_over_text = font.render(("The Hero has died!"), True, (0,0,0))
+
+			
 
 	# 6. Fill in the screen with a color (or image)
 	# ACTUALLY RENDER SOMETHING
@@ -117,6 +143,8 @@ while game_on:
 	font = pygame.font.Font(None, 25)
 	wins_text = font.render("Wins: %d" % (hero['wins']), True, (0,0,0))
 	pygame_screen.blit(wins_text,[40,40])
+	if game_over_text != "":
+		pygame_screen.blit(game_over_text,[40,40])		
 	
 	pygame_screen.blit(hero_image, [hero['x'],hero['y']])
 	pygame_screen.blit(goblin_image, [goblin['x'],goblin['y']])
