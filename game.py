@@ -5,6 +5,8 @@ import pygame
 # from the math module (built into python), get the fabs method
 from math import fabs, hypot
 
+from random import randint
+
 # 2. Init pygame
 # in order to use pygame, we have to run the init method
 pygame.init()
@@ -20,6 +22,7 @@ pygame.display.set_caption("Goblin Chase")
 background_image = pygame.image.load('background.png')
 hero_image = pygame.image.load('hero.png')
 goblin_image = pygame.image.load('goblin.png')
+monster_image = pygame.image.load('monster.png')
 
 # 8. Set up the hero location
 hero = {
@@ -33,6 +36,14 @@ goblin = {
 	"x": 200,
 	"y": 200,
 	"speed": 2
+}
+
+monster = {
+	"x": 100,
+	"y": 200,
+	"speed": 3,
+	"dx": 1,
+	"dy": 1,
 }
 
 keys = {
@@ -55,7 +66,10 @@ game_over_text = ""
 # Create a boolean for whether the game should be going or not
 game_on = True
 hero_alive = True
+tick = 0
 while game_on:
+	tick += 1
+	print tick
 	# we are inside the main game loop.
 	# it will keep running, as long as our bool is true
 	# 5. Add a quit event (Python needs an escape)
@@ -92,15 +106,19 @@ while game_on:
 				keys_down['left'] = False
 
 	if hero_alive:
-		# MOve the hero
+		# Move the hero
 		if keys_down['up']:
-			hero['y'] -= hero['speed']
+			if hero['y'] > 0:
+				hero['y'] -= hero['speed']
 		elif keys_down['down']:
-			hero['y'] += hero['speed']
+			if hero['y'] < (480-32):
+				hero['y'] += hero['speed']
 		if keys_down['left']:
-			hero['x'] -= hero['speed']
+			if hero['x'] > 0:
+				hero['x'] -= hero['speed']
 		elif keys_down['right']:
-			hero['x'] += hero['speed']
+			if hero['x'] < (512-32):
+				hero['x'] += hero['speed']
 
 		# Move the bad guy
 		dx = goblin['x'] - hero['x']
@@ -113,6 +131,13 @@ while game_on:
 		goblin['x'] -= dx * goblin['speed']
 		goblin['y'] -= dy * goblin['speed']
 
+		if tick % 20 == 0:
+		# change directions!
+			monster['dx'] = randint(-1,1)
+			monster['dy'] = randint(-1,1)
+
+		monster['x'] += monster['dx'] * monster['speed']
+		monster['y'] += monster['dy'] * monster['speed']
 
 
 		# COLLISION DETECTION!!!
@@ -123,7 +148,7 @@ while game_on:
 			goblin['x'] = 200
 			goblin['y'] = 200
 			goblin['speed'] += 1
-			hero_alive = False
+			# hero_alive = False
 		else:
 			print "not touching"
 	# hero_alive = false
@@ -148,6 +173,8 @@ while game_on:
 	
 	pygame_screen.blit(hero_image, [hero['x'],hero['y']])
 	pygame_screen.blit(goblin_image, [goblin['x'],goblin['y']])
+	pygame_screen.blit(monster_image, [monster['x'],monster['y']])
+
 
 	# 7. Repeat 6 over and over over...
 	pygame.display.flip()
